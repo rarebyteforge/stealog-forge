@@ -1,0 +1,10 @@
+*.db
+*.log
+.env
+__pycache__/
+*.pyc
+.server.pid
+.ingested_files
+venv/
+node_modules/
+*.zip
