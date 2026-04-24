@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SteaLog Forge — Forensics Cyber Security Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #020408;
+  --bg2:      #060d14;
+  --bg3:      #0a1520;
+  --green:    #00ff88;
+  --green2:   #00cc66;
+  --orange:   #ff6b00;
+  --red:      #ff2244;
+  --blue:     #0088ff;
+  --cyan:     #00ddff;
+  --yellow:   #ffcc00;
+  --text:     #c8d8e8;
+  --text2:    #5a7a8a;
+  --border:   #0d2030;
+  --mono:     'Share Tech Mono', monospace;
+  --display:  'Orbitron', monospace;
+  --body:     'Rajdhani', sans-serif;
+  --glow-g:   0 0 20px rgba(0,255,136,.3);
+  --glow-o:   0 0 20px rgba(255,107,0,.3);
+  --glow-r:   0 0 20px rgba(255,34,68,.3);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── Scanline overlay ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,.03) 2px,
+    rgba(0,0,0,.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── Grid background ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,255,136,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,136,.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: rgba(2,4,8,.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.logo-hex {
+  width: 36px; height: 36px;
+  background: var(--green);
+  clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display: grid;
+  place-items: center;
+  font-family: var(--display);
+  font-size: .9rem;
+  font-weight: 900;
+  color: #000;
+  animation: pulse-hex 3s ease-in-out infinite;
+}
+
+@keyframes pulse-hex {
+  0%,100% { box-shadow: 0 0 0 rgba(0,255,136,0); }
+  50% { box-shadow: var(--glow-g); }
+}
+
+.logo-text {
+  font-family: var(--display);
+  font-size: .95rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #fff;
+}
+
+.logo-sub {
+  font-family: var(--mono);
+  font-size: .5rem;
+  color: var(--green);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+}
+
+.nav-links a {
+  font-family: var(--mono);
+  font-size: .7rem;
+  color: var(--text2);
+  text-decoration: none;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: color .2s;
+}
+
+.nav-links a:hover { color: var(--green); }
+
+.nav-cta {
+  font-family: var(--mono);
+  font-size: .7rem;
+  letter-spacing: 2px;
+  padding: .5rem 1.25rem;
+  background: transparent;
+  border: 1px solid var(--green);
+  color: var(--green);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all .2s;
+  text-transform: uppercase;
+}
+
+.nav-cta:hover {
+  background: var(--green);
+  color: #000;
+  box-shadow: var(--glow-g);
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem 2rem 4rem;
+  text-align: center;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.hero-glow {
+  position: absolute;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(0,255,136,.06) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .3rem 1rem;
+  border: 1px solid rgba(0,255,136,.3);
+  background: rgba(0,255,136,.05);
+  font-family: var(--mono);
+  font-size: .6rem;
+  letter-spacing: 3px;
+  color: var(--green);
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+  animation: fadeUp .8s ease both;
+}
+
+.hero-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.hero h1 {
+  font-family: var(--display);
+  font-size: clamp(2.5rem, 8vw, 5.5rem);
+  font-weight: 900;
+  letter-spacing: 4px;
+  line-height: 1.05;
+  color: #fff;
+  animation: fadeUp .8s .1s ease both;
+  text-shadow: 0 0 60px rgba(0,255,136,.15);
+}
+
+.hero h1 span {
+  color: var(--green);
+  text-shadow: var(--glow-g);
+}
+
+.hero-sub {
+  font-family: var(--mono);
+  font-size: clamp(.75rem, 2vw, .95rem);
+  color: var(--text2);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin: 1rem 0 2rem;
+  animation: fadeUp .8s .2s ease both;
+}
+
+.hero-desc {
+  max-width: 600px;
+  font-size: 1.1rem;
+  color: var(--text);
+  line-height: 1.8;
+  margin-bottom: 2.5rem;
+  animation: fadeUp .8s .3s ease both;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  animation: fadeUp .8s .4s ease both;
+}
+
+.btn-primary {
+  font-family: var(--mono);
+  font-size: .75rem;
+  letter-spacing: 2px;
+  padding: .9rem 2rem;
+  background: var(--green);
+  color: #000;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  text-transform: uppercase;
+  font-weight: 700;
+  transition: all .2s;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+
+.btn-primary:hover {
+  background: #fff;
+  box-shadow: var(--glow-g);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  font-family: var(--mono);
+  font-size: .75rem;
+  letter-spacing: 2px;
+  padding: .9rem 2rem;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: all .2s;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+
+.btn-secondary:hover {
+  border-color: var(--green);
+  color: var(--green);
+  transform: translateY(-2px);
+}
+
+/* Stats strip */
+.stats-strip {
+  display: flex;
+  gap: 0;
+  margin-top: 4rem;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  animation: fadeUp .8s .5s ease both;
+}
+
+.stat-item {
+  flex: 1;
+  padding: 1.25rem 1.5rem;
+  text-align: center;
+  border-right: 1px solid var(--border);
+  background: var(--bg2);
+}
+
+.stat-item:last-child { border-right: none; }
+
+.stat-val {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--green);
+  display: block;
+}
+
+.stat-lbl {
+  font-family: var(--mono);
+  font-size: .55rem;
+  letter-spacing: 2px;
+  color: var(--text2);
+  text-transform: uppercase;
+  display: block;
+  margin-top: .2rem;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── SECTION ── */
+section {
+  position: relative;
+  z-index: 1;
+  padding: 6rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-family: var(--mono);
+  font-size: .6rem;
+  letter-spacing: 4px;
+  color: var(--green);
+  text-transform: uppercase;
+  margin-bottom: .75rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.section-label::before {
+  content: '';
+  width: 30px; height: 1px;
+  background: var(--green);
+}
+
+.section-title {
+  font-family: var(--display);
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 2px;
+  margin-bottom: 1rem;
+}
+
+.section-desc {
+  color: var(--text2);
+  max-width: 600px;
+  line-height: 1.8;
+  margin-bottom: 3rem;
+}
+
+/* ── FEATURES ── */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+
+.feature-card {
+  background: var(--bg2);
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  transition: background .3s;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--green), transparent);
+  transform: translateX(-100%);
+  transition: transform .5s;
+}
+
+.feature-card:hover { background: var(--bg3); }
+.feature-card:hover::before { transform: translateX(100%); }
+
+.feature-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.feature-title {
+  font-family: var(--display);
+  font-size: .85rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #fff;
+  margin-bottom: .5rem;
+  text-transform: uppercase;
+}
+
+.feature-desc {
+  font-size: .9rem;
+  color: var(--text2);
+  line-height: 1.7;
+}
+
+/* ── PRICING ── */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media(max-width: 768px) {
+  .pricing-grid { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+  .stats-strip { flex-wrap: wrap; }
+}
+
+.tier-card {
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  position: relative;
+  overflow: hidden;
+  transition: transform .3s, box-shadow .3s;
+}
+
+.tier-card:hover {
+  transform: translateY(-4px);
+}
+
+.tier-card.featured {
+  border-color: var(--green);
+  box-shadow: var(--glow-g), inset 0 0 60px rgba(0,255,136,.02);
+}
+
+.tier-card.featured::before {
+  content: 'RECOMMENDED';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  background: var(--green);
+  color: #000;
+  font-family: var(--mono);
+  font-size: .55rem;
+  letter-spacing: 3px;
+  text-align: center;
+  padding: .3rem;
+  font-weight: 700;
+}
+
+.tier-header {
+  padding: 2rem;
+  border-bottom: 1px solid var(--border);
+  padding-top: 2.5rem;
+}
+
+.tier-card.featured .tier-header { padding-top: 3rem; }
+
+.tier-icon {
+  font-size: 2rem;
+  margin-bottom: .75rem;
+  display: block;
+}
+
+.tier-name {
+  font-family: var(--display);
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.tier-card.featured .tier-name { color: var(--green); }
+
+.tier-tagline {
+  font-family: var(--mono);
+  font-size: .6rem;
+  color: var(--text2);
+  letter-spacing: 2px;
+  margin-top: .3rem;
+  font-style: italic;
+}
+
+.tier-price {
+  margin-top: 1.25rem;
+}
+
+.price-amount {
+  font-family: var(--display);
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+
+.tier-card.featured .price-amount { color: var(--green); }
+
+.price-period {
+  font-family: var(--mono);
+  font-size: .65rem;
+  color: var(--text2);
+  letter-spacing: 2px;
+  margin-left: .25rem;
+}
+
+.price-annual {
+  font-family: var(--mono);
+  font-size: .6rem;
+  color: var(--text2);
+  margin-top: .3rem;
+}
+
+.tier-body {
+  padding: 1.5rem 2rem;
+}
+
+.tier-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  margin-bottom: 1.5rem;
+}
+
+.tier-features li {
+  font-family: var(--mono);
+  font-size: .68rem;
+  color: var(--text2);
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+  letter-spacing: .5px;
+}
+
+.tier-features li::before {
+  content: '✓';
+  color: var(--green);
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+.tier-features li.locked {
+  opacity: .4;
+}
+
+.tier-features li.locked::before {
+  content: '—';
+  color: var(--text2);
+}
+
+.tier-btn {
+  display: block;
+  width: 100%;
+  padding: .85rem;
+  font-family: var(--mono);
+  font-size: .7rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: all .2s;
+}
+
+.tier-btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text2);
+}
+
+.tier-btn-outline:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.tier-btn-solid {
+  background: var(--green);
+  color: #000;
+  font-weight: 700;
+}
+
+.tier-btn-solid:hover {
+  background: #fff;
+  box-shadow: var(--glow-g);
+}
+
+.tier-btn-enterprise {
+  background: transparent;
+  border: 1px solid rgba(255,107,0,.4);
+  color: var(--orange);
+}
+
+.tier-btn-enterprise:hover {
+  background: rgba(255,107,0,.1);
+  border-color: var(--orange);
+  box-shadow: var(--glow-o);
+}
+
+/* ── DISCLAIMER ── */
+.disclaimer {
+  background: rgba(255,34,68,.04);
+  border: 1px solid rgba(255,34,68,.2);
+  padding: 2.5rem;
+  margin: 0 auto;
+  max-width: 900px;
+  position: relative;
+  z-index: 1;
+}
+
+.disclaimer-title {
+  font-family: var(--display);
+  font-size: .8rem;
+  letter-spacing: 3px;
+  color: var(--red);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.disclaimer-title::before {
+  content: '⚠';
+  font-size: 1rem;
+}
+
+.disclaimer p {
+  font-family: var(--mono);
+  font-size: .65rem;
+  color: var(--text2);
+  line-height: 2;
+  letter-spacing: .5px;
+}
+
+.disclaimer p + p { margin-top: .75rem; }
+
+/* ── COMMUNITY ── */
+.community-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media(max-width: 600px) { .community-grid { grid-template-columns: 1fr; } }
+
+.community-card {
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-decoration: none;
+  transition: all .3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.community-card::after {
+  content: '→';
+  position: absolute;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  font-family: var(--mono);
+  font-size: 1rem;
+  color: var(--border);
+  transition: all .3s;
+}
+
+.community-card:hover::after {
+  color: var(--green);
+  right: 1rem;
+}
+
+.community-card.telegram:hover {
+  border-color: #2aabee;
+  box-shadow: 0 0 20px rgba(42,171,238,.15);
+}
+
+.community-card.discord:hover {
+  border-color: #5865f2;
+  box-shadow: 0 0 20px rgba(88,101,242,.15);
+}
+
+.community-icon {
+  font-size: 2.5rem;
+}
+
+.community-name {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.community-desc {
+  font-size: .9rem;
+  color: var(--text2);
+  line-height: 1.7;
+  font-family: var(--mono);
+  font-size: .65rem;
+  letter-spacing: .5px;
+}
+
+.community-handle {
+  font-family: var(--mono);
+  font-size: .7rem;
+  color: var(--green);
+  letter-spacing: 1px;
+}
+
+/* ── ABOUT ── */
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+@media(max-width: 768px) { .about-grid { grid-template-columns: 1fr; } }
+
+.about-terminal {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: .7rem;
+  overflow: hidden;
+}
+
+.terminal-bar {
+  background: var(--bg3);
+  padding: .6rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.t-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+}
+
+.t-dot.r { background: #ff5f57; }
+.t-dot.y { background: #ffbd2e; }
+.t-dot.g { background: #28ca41; }
+
+.terminal-body {
+  padding: 1.5rem;
+  color: var(--text2);
+  line-height: 2;
+}
+
+.t-green { color: var(--green); }
+.t-blue  { color: var(--cyan); }
+.t-dim   { color: #2a3a4a; }
+.t-white { color: #fff; }
+
+.cursor {
+  display: inline-block;
+  width: 8px; height: 14px;
+  background: var(--green);
+  animation: blink 1s step-end infinite;
+  vertical-align: middle;
+}
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 3rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-brand {
+  font-family: var(--display);
+  font-size: .75rem;
+  letter-spacing: 3px;
+  color: var(--text2);
+}
+
+.footer-links {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+}
+
+.footer-links a {
+  font-family: var(--mono);
+  font-size: .6rem;
+  letter-spacing: 2px;
+  color: var(--text2);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color .2s;
+}
+
+.footer-links a:hover { color: var(--green); }
+
+.footer-legal {
+  font-family: var(--mono);
+  font-size: .55rem;
+  color: var(--text2);
+  letter-spacing: 1px;
+  opacity: .5;
+}
+
+/* ── Scroll reveal ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity .7s ease, transform .7s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Glitch effect on logo ── */
+@keyframes glitch {
+  0%   { text-shadow: 2px 0 var(--red), -2px 0 var(--cyan); }
+  20%  { text-shadow: -2px 0 var(--red), 2px 0 var(--cyan); }
+  40%  { text-shadow: 2px 0 var(--cyan), -2px 0 var(--green); }
+  60%  { text-shadow: 0 0 transparent; }
+  80%  { text-shadow: -2px 0 var(--green), 2px 0 var(--red); }
+  100% { text-shadow: 2px 0 var(--red), -2px 0 var(--cyan); }
+}
+
+.hero h1:hover { animation: glitch .3s steps(2) infinite; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="logo-hex">S</div>
+    <div>
+      <div class="logo-text">STEALOG FORGE</div>
+      <div class="logo-sub">Forensics Suite</div>
+    </div>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#community">Community</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+  <a href="#pricing" class="nav-cta">Get Access</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-glow"></div>
+
+  <div class="hero-badge">
+    <span>v3.0.0 — Now Live</span>
+  </div>
+
+  <h1>STEALOG<br><span>FORGE</span></h1>
+
+  <div class="hero-sub">Forensics Cyber Security Suite</div>
+
+  <p class="hero-desc">
+    The only platform purpose-built for stealer malware log analysis.
+    From raw ZIP archive to validated active session in under 60 seconds.
+    Built for authorized incident response professionals.
+  </p>
+
+  <div class="hero-actions">
+    <a href="#pricing" class="btn-primary">Start Free — RECON</a>
+    <a href="#features" class="btn-secondary">Explore Features</a>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat-item">
+      <span class="stat-val">60s</span>
+      <span class="stat-lbl">ZIP to validated session</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-val">13</span>
+      <span class="stat-lbl">Cookie categories</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-val">FTS5</span>
+      <span class="stat-lbl">Millisecond search</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-val">100%</span>
+      <span class="stat-lbl">Offline capable</span>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-label">Capabilities</div>
+  <h2 class="section-title reveal">FULL SPECTRUM<br>FORENSICS</h2>
+  <p class="section-desc reveal">Every tool an IR analyst needs. Zero cloud dependency. Full chain of custody.</p>
+
+  <div class="features-grid reveal">
+    <div class="feature-card">
+      <span class="feature-icon">🔍</span>
+      <div class="feature-title">Stealer Log Ingestion</div>
+      <p class="feature-desc">ZIP extraction with priority parsing. Passwords → Cookies → Wallets in order of forensic value. Background async processing with live progress.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🍪</span>
+      <div class="feature-title">Cookie Validation</div>
+      <p class="feature-desc">Live HTTP validation of session tokens. SHA256 audit trail. Proves active compromise — Google, PayPal, Airwallex all confirmed in real cases.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🔑</span>
+      <div class="feature-title">Credential Analysis</div>
+      <p class="feature-desc">FTS5 full-text search across all cases in milliseconds. Category filtering: Banking, Crypto, Social, Government. Cross-case reuse detection.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">💰</span>
+      <div class="feature-title">Wallet Detection</div>
+      <p class="feature-desc">BTC, ETH, XMR, LTC extraction with private key vicinity detection. Balance display. Admin-only key reveal with role-based access control.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📊</span>
+      <div class="feature-title">Threat Intelligence</div>
+      <p class="feature-desc">MITRE ATT&CK mapping per malware family. Geographic distribution. Campaign correlation. RedLine, Lumma, Raccoon, Vidar all detected.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">⚖️</span>
+      <div class="feature-title">Chain of Custody</div>
+      <p class="feature-desc">Immutable audit log with analyst identification. SHA256 cookie hashes — never plaintext. Court-admissible forensics export packages.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section-label">Subscription Tiers</div>
+  <h2 class="section-title reveal">CHOOSE YOUR<br>CLEARANCE LEVEL</h2>
+  <p class="section-desc reveal">Three tiers. One platform. Scale from individual research to enterprise operations.</p>
+
+  <div class="pricing-grid reveal">
+
+    <!-- RECON -->
+    <div class="tier-card">
+      <div class="tier-header">
+        <span class="tier-icon">🔍</span>
+        <div class="tier-name">RECON</div>
+        <div class="tier-tagline">"Know your exposure. Start your investigation."</div>
+        <div class="tier-price">
+          <span class="price-amount">$0</span>
+          <span class="price-period">/month</span>
+          <div class="price-annual">Free forever</div>
+        </div>
+      </div>
+      <div class="tier-body">
+        <ul class="tier-features">
+          <li>10 cases maximum</li>
+          <li>Plain text file ingestion</li>
+          <li>Domain browser (no passwords)</li>
+          <li>Cookie domain summary</li>
+          <li>Basic keyword search</li>
+          <li>1 analyst account</li>
+          <li class="locked">ZIP file extraction</li>
+          <li class="locked">Cookie validation</li>
+          <li class="locked">Wallet detection</li>
+          <li class="locked">Batch ingest</li>
+          <li class="locked">Export</li>
+        </ul>
+        <a href="https://github.com/rarebyteforge/stealog-forge" class="tier-btn tier-btn-outline">
+          Start Free →
+        </a>
+      </div>
+    </div>
+
+    <!-- PHANTOM -->
+    <div class="tier-card featured">
+      <div class="tier-header">
+        <span class="tier-icon">👻</span>
+        <div class="tier-name">PHANTOM</div>
+        <div class="tier-tagline">"Move unseen. Strike with precision."</div>
+        <div class="tier-price">
+          <span class="price-amount">$49</span>
+          <span class="price-period">/month</span>
+          <div class="price-annual">$490/year — 2 months free</div>
+        </div>
+      </div>
+      <div class="tier-body">
+        <ul class="tier-features">
+          <li>Unlimited cases</li>
+          <li>ZIP extraction + async processing</li>
+          <li>Full credential access</li>
+          <li>Full cookie browser + values</li>
+          <li>500 cookie validations/month</li>
+          <li>FTS5 search — 500 results</li>
+          <li>JSON + CSV export</li>
+          <li>All categories except Adult</li>
+          <li>30-day audit log retention</li>
+          <li>3 analysts + 1 admin</li>
+          <li>Batch ingest (100 files)</li>
+        </ul>
+        <a href="mailto:enterprise@stealogforge.qzz.io?subject=PHANTOM Subscription" class="tier-btn tier-btn-solid">
+          Get PHANTOM →
+        </a>
+      </div>
+    </div>
+
+    <!-- GHOSTNET -->
+    <div class="tier-card">
+      <div class="tier-header">
+        <span class="tier-icon">💀</span>
+        <div class="tier-name">GHOSTNET</div>
+        <div class="tier-tagline">"Total visibility. Absolute authority."</div>
+        <div class="tier-price">
+          <span class="price-amount">$199</span>
+          <span class="price-period">/month</span>
+          <div class="price-annual">$1,990/year · Enterprise custom</div>
+        </div>
+      </div>
+      <div class="tier-body">
+        <ul class="tier-features">
+          <li>Everything in PHANTOM</li>
+          <li>Unlimited validations</li>
+          <li>Private key reveal</li>
+          <li>Full REST API access</li>
+          <li>PDF forensics report export</li>
+          <li>Unlimited batch ingest</li>
+          <li>Unlimited audit log retention</li>
+          <li>All categories + Adult</li>
+          <li>White-label deployment</li>
+          <li>Unlimited users + roles</li>
+          <li>Law enforcement export</li>
+        </ul>
+        <a href="mailto:enterprise@stealogforge.qzz.io?subject=GHOSTNET Enterprise" class="tier-btn tier-btn-enterprise">
+          Contact Enterprise →
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- DISCLAIMER -->
+<div class="disclaimer reveal" style="margin: 0 2rem 4rem; max-width:1200px; margin-left:auto; margin-right:auto;">
+  <div class="disclaimer-title">Legal Notice & No-Responsibility Disclaimer</div>
+  <p>SteaLog Forge is licensed exclusively for authorized security incident response, penetration testing under signed Rules of Engagement, academic research with appropriate ethics board approval, and law enforcement operations under valid legal authority. All use requires explicit written authorization from the system or data owner.</p>
+  <p>The developers of SteaLog Forge accept NO responsibility for any misuse, illegal activity, unauthorized access, or harm resulting from use of this platform. Cookie validation is provided for forensic evidentiary purposes only. Using validated session data to access accounts without authorization is illegal in all jurisdictions and grounds for immediate license termination and legal referral. You act entirely within your own legal jurisdiction and at your own risk.</p>
+</div>
+
+<!-- COMMUNITY -->
+<section id="community">
+  <div class="section-label">Community</div>
+  <h2 class="section-title reveal">JOIN THE<br>OPERATIONS CENTER</h2>
+  <p class="section-desc reveal">Connect with authorized security professionals. Share intelligence. Get support.</p>
+
+  <div class="community-grid reveal">
+    <a href="https://t.me/StealogForge" class="community-card telegram" target="_blank">
+      <div class="community-icon">✈️</div>
+      <div class="community-name">Telegram</div>
+      <div class="community-desc">
+        Real-time threat intelligence sharing, platform updates, and community discussion. Announcements, tutorials, and case studies published here first.
+      </div>
+      <div class="community-handle">@StealogForge</div>
+    </a>
+
+    <a href="https://discord.gg/stealogforge" class="community-card discord" target="_blank">
+      <div class="community-icon">🎮</div>
+      <div class="community-name">Discord</div>
+      <div class="community-desc">
+        Role-gated channels per subscription tier. PHANTOM Lounge and GHOSTNET OPS for licensed analysts. Priority support and beta feature access.
+      </div>
+      <div class="community-handle">discord.gg/stealogforge</div>
+    </a>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-label">About</div>
+  <h2 class="section-title reveal">BUILT IN THE<br>FIELD</h2>
+
+  <div class="about-grid reveal">
+    <div>
+      <p style="font-size:1.05rem; line-height:1.9; color:var(--text); margin-bottom:1.5rem;">
+        RareByteForge is an independent cybersecurity research studio building professional-grade forensics tooling entirely from a mobile device — proving that serious security capability doesn't require enterprise infrastructure.
+      </p>
+      <p style="font-size:1.05rem; line-height:1.9; color:var(--text2); margin-bottom:2rem;">
+        SteaLog Forge was designed and built on a T-Mobile Revvl Tab 2. A $150 tablet. Because real investigations happen in the field, not server rooms.
+      </p>
+      <p style="font-family:var(--mono); font-size:.7rem; color:var(--green); letter-spacing:2px;">
+        "We build what the field demands — not what the boardroom approves."
+      </p>
+      <div style="margin-top:2rem; display:flex; gap:1rem; flex-wrap:wrap;">
+        <a href="https://github.com/rarebyteforge/stealog-forge" class="btn-secondary" style="clip-path:none; font-size:.65rem;">GitHub →</a>
+        <a href="mailto:support@stealogforge.qzz.io" class="btn-secondary" style="clip-path:none; font-size:.65rem;">Contact →</a>
+      </div>
+    </div>
+
+    <div class="about-terminal">
+      <div class="terminal-bar">
+        <div class="t-dot r"></div>
+        <div class="t-dot y"></div>
+        <div class="t-dot g"></div>
+        <span style="font-family:var(--mono);font-size:.6rem;color:var(--text2);margin-left:.5rem;">stealog@forge:~$</span>
+      </div>
+      <div class="terminal-body">
+        <div><span class="t-green">$</span> <span class="t-blue">sl-ingest</span> <span class="t-white">CI_196.192.120.254.zip</span></div>
+        <div class="t-dim">→ Parsing Passwords/ Cookies/ Wallets/</div>
+        <div><span class="t-green">✓</span> Case: CASE-56BD49</div>
+        <div><span class="t-green">✓</span> Credentials: <span class="t-white">49</span> | Cookies: <span class="t-white">1575</span> | Wallets: <span class="t-white">2</span></div>
+        <br>
+        <div><span class="t-green">$</span> <span class="t-blue">sl-validate</span> <span class="t-white">CASE-56BD49</span></div>
+        <div class="t-dim">→ Checking 10 domains...</div>
+        <div><span style="color:#22c55e">🟢 VALID</span>  accounts.google.com    <span class="t-dim">200 · 490ms</span></div>
+        <div><span style="color:#22c55e">🟢 VALID</span>  airwallex.com          <span class="t-dim">301 · 587ms</span></div>
+        <div><span style="color:#22c55e">🟢 VALID</span>  youtube.com            <span class="t-dim">301 · 387ms</span></div>
+        <div><span style="color:#eab308">🟡 EXPIRED</span> auth.opera.com        <span class="t-dim">307 · 1045ms</span></div>
+        <br>
+        <div><span class="t-green">$</span> <span class="t-dim"># Active sessions confirmed. Chain of custody logged.</span></div>
+        <div><span class="t-green">$</span> <span class="t-white cursor"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">STEALOG FORGE © 2026 RAREBYTEFORGE</div>
+  <ul class="footer-links">
+    <li><a href="https://github.com/rarebyteforge/stealog-forge">GitHub</a></li>
+    <li><a href="https://t.me/StealogForge">Telegram</a></li>
+    <li><a href="https://discord.gg/stealogforge">Discord</a></li>
+    <li><a href="mailto:support@stealogforge.qzz.io">Support</a></li>
+  </ul>
+  <div class="footer-legal">FOR AUTHORIZED SECURITY RESEARCH ONLY</div>
+</footer>
+
+<script>
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Animated counter for stats
+const counters = document.querySelectorAll('.stat-val');
+counters.forEach(counter => {
+  const target = counter.textContent;
+  if (!isNaN(parseInt(target))) {
+    const num = parseInt(target);
+    let current = 0;
+    const increment = num / 40;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= num) {
+        counter.textContent = target;
+        clearInterval(timer);
+      } else {
+        counter.textContent = Math.floor(current);
+      }
+    }, 30);
+  }
+});
+
+// Typing effect for terminal
+const termLines = document.querySelectorAll('.terminal-body div');
+termLines.forEach((line, i) => {
+  line.style.opacity = '0';
+  line.style.transition = 'opacity 0.3s';
+  setTimeout(() => {
+    line.style.opacity = '1';
+  }, 300 + i * 200);
+});
+</script>
+</body>
+</html>
